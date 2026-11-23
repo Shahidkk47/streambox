@@ -85,11 +85,12 @@ dialog[open]::backdrop{animation:fade .35s}
 
 <section class="hero" id="hero"></section>
 <main id="main"></main>
-<footer>StreamBox shows only free, legally shareable films (Blender Foundation open movies and Google sample videos). Add your own titles in the <code>MOVIES</code> list in this file.</footer>
+<footer>StreamBox shows only free, legally shareable films: official Blender open movies, played through the YouTube player (use the gear icon for HD quality and the CC button for subtitles). Add your own titles in the <code>MOVIES</code> list in this file.</footer>
 
 <dialog id="dlg">
   <button class="btn x" id="close" aria-label="Close">✕</button>
   <video id="vid" controls playsinline preload="metadata"></video>
+  <iframe id="yt" title="Movie player" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture; fullscreen" style="display:none;width:100%;aspect-ratio:16/9;border:0;background:#000"></iframe>
   <div id="err" hidden style="padding:10px 20px;color:#ff8a8a;background:#2a1212"></div>
   <div class="info">
     <h3 id="t"></h3>
@@ -99,7 +100,7 @@ dialog[open]::backdrop{animation:fade .35s}
       <button class="btn alt" id="lst"></button>
       <a class="btn red" id="dl" target="_blank" rel="noopener" style="text-decoration:none">Download</a>
     </div>
-    <div class="note">Use the CC button in the player to switch subtitles. Pick quality in the player’s settings when a title offers several.</div>
+    <div class="note">Use the CC button for subtitles and the gear icon for HD quality. If a video says unavailable, press Watch on YouTube.</div>
   </div>
 </dialog>
 
@@ -107,21 +108,23 @@ dialog[open]::backdrop{animation:fade .35s}
 var B="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/";
 /* Add your own movies here. Optional: subs:[{label:"Urdu",lang:"ur",src:"urdu.vtt"}] */
 var MOVIES=[
- {id:1,title:"Big Buck Bunny",cat:"Animation",year:2008,len:"10 min",hue:120,src:["https://download.blender.org/demo/movies/BBB/bbb_sunflower_1080p_30fps_normal.mp4","https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4",B+"BigBuckBunny.mp4"],desc:"A giant rabbit takes gentle revenge on three bullying rodents. Blender Foundation open movie (CC BY 3.0)."},
- {id:2,title:"Sintel",cat:"Animation",year:2010,len:"15 min",hue:10,src:B+"Sintel.mp4",desc:"A young woman searches for the baby dragon she once befriended. Blender Foundation open movie (CC BY 3.0)."},
- {id:3,title:"Elephants Dream",cat:"Animation",year:2006,len:"11 min",hue:260,src:B+"ElephantsDream.mp4",desc:"Two strange characters explore a surreal mechanical world. The first Blender open movie (CC BY 2.5)."},
- {id:4,title:"Tears of Steel",cat:"Sci-Fi",year:2012,len:"12 min",hue:200,src:["https://download.blender.org/demo/movies/ToS/tears_of_steel_720p.mov",B+"TearsOfSteel.mp4"],desc:"Warriors and scientists try to save the world from destructive robots. Blender Foundation (CC BY 3.0)."},
- {id:5,title:"For Bigger Blazes",cat:"Short Clips",year:2013,len:"15 sec",hue:30,src:B+"ForBiggerBlazes.mp4",desc:"A short sample clip, handy for testing playback speed and quality."},
- {id:6,title:"For Bigger Escape",cat:"Short Clips",year:2013,len:"15 sec",hue:340,src:B+"ForBiggerEscapes.mp4",desc:"A short sample clip for testing playback."},
- {id:7,title:"For Bigger Fun",cat:"Short Clips",year:2013,len:"1 min",hue:170,src:B+"ForBiggerFun.mp4",desc:"A short sample clip for testing playback."},
- {id:8,title:"For Bigger Joyrides",cat:"Short Clips",year:2013,len:"15 sec",hue:60,src:B+"ForBiggerJoyrides.mp4",desc:"A short sample clip for testing playback."}
+ {id:1,title:"Big Buck Bunny",cat:"Animation",year:2008,len:"10 min",hue:120,yt:"aqz-KE-bpKQ",desc:"A giant rabbit takes gentle revenge on three bullying rodents. Blender Foundation open movie (CC BY 3.0)."},
+ {id:2,title:"Sintel",cat:"Animation",year:2010,len:"15 min",hue:10,yt:"eRsGyueVLvQ",desc:"A young woman searches for the baby dragon she once befriended. Blender Foundation open movie (CC BY 3.0)."},
+ {id:3,title:"Elephants Dream",cat:"Animation",year:2006,len:"11 min",hue:260,yt:"TLkA0RELQ1g",desc:"Two strange characters explore a surreal mechanical world. The first Blender open movie (CC BY 2.5)."},
+ {id:4,title:"Tears of Steel",cat:"Sci-Fi",year:2012,len:"12 min",hue:200,yt:"R6MlUcmOul8",desc:"Warriors and scientists try to save the world from destructive robots. Blender Foundation (CC BY 3.0)."},
+ {id:5,title:"Cosmos Laundromat",cat:"Sci-Fi",year:2015,len:"12 min",hue:290,yt:"Y-rmzh0PI3c",desc:"A lonely sheep on an island is offered a very strange new life. Blender Foundation (CC BY 4.0)."},
+ {id:6,title:"Spring",cat:"Animation",year:2019,len:"8 min",hue:95,yt:"WhWc3b3KhnY",desc:"A shepherd girl and her dog face ancient spirits in a timeless cycle. Blender Studio (CC BY 4.0)."},
+ {id:7,title:"Agent 327: Operation Barbershop",cat:"Short Comedy",year:2017,len:"4 min",hue:35,yt:"mN0zPOpADL4",desc:"A secret agent investigates a suspicious barbershop. Blender Studio (CC BY 4.0)."},
+ {id:8,title:"Caminandes: Llama Drama",cat:"Short Comedy",year:2013,len:"2 min",hue:50,yt:"SkVqJ1SGeL0",desc:"A llama named Koro tries to cross a fence to reach some tasty berries. Blender Studio (CC BY 3.0)."}
 ];
+/* To add your own video file instead of YouTube, use src:"my-video.mp4" (put the file in the same repo folder). */
 var $=function(s){return document.querySelector(s)};
 var view="home",term="",cur=null,mine=[];
 try{mine=JSON.parse(localStorage.getItem("sb_list")||"[]")}catch(e){mine=[]}
 function save(){try{localStorage.setItem("sb_list",JSON.stringify(mine))}catch(e){}}
 function bg(m){return "linear-gradient(160deg,hsl("+m.hue+" 70% 38%),hsl("+(m.hue+50)+" 60% 14%))"}
-function card(m,i){return '<div class="card" tabindex="0" role="button" data-id="'+m.id+'" style="--i:'+i+';background:'+bg(m)+'"><small>'+m.year+'</small><b>'+m.title+'</b></div>'}
+function thumb(m){return m.yt?"linear-gradient(transparent 40%,#000d),url('https://i.ytimg.com/vi/"+m.yt+"/hqdefault.jpg') center/cover no-repeat,":""}
+function card(m,i){return '<div class="card" tabindex="0" role="button" data-id="'+m.id+'" style="--i:'+i+';background:'+thumb(m)+bg(m)+'"><small>'+m.year+'</small><b>'+m.title+'</b></div>'}
 function row(name,list){return list.length?'<h2>'+name+'</h2><div class="row">'+list.map(card).join("")+'</div>':""}
 function render(){
   var f=MOVIES.filter(function(m){return m.title.toLowerCase().indexOf(term)>-1});
@@ -141,7 +144,7 @@ function render(){
 }
 function hero(){
   var m=MOVIES[0];
-  $("#hero").style.setProperty("--hg","hsl("+m.hue+" 60% 22%)");
+  $("#hero").style.setProperty("--hg",(m.yt?"url(https://i.ytimg.com/vi/"+m.yt+"/maxresdefault.jpg) center/cover no-repeat,":"")+"hsl("+m.hue+" 60% 22%)");
   $("#hero").innerHTML='<h1>'+m.title+'</h1><p>'+m.desc+'</p><div class="row-btns"><button class="btn play" data-id="'+m.id+'">▶ Play</button><button class="btn alt" data-id="'+m.id+'">More info</button></div>';
 }
 function vtt(m){
@@ -150,14 +153,23 @@ function vtt(m){
 }
 function open(id){
   cur=MOVIES.filter(function(m){return m.id===+id})[0];if(!cur)return;
-  var v=$("#vid");$("#err").hidden=true;v.innerHTML="";cur.i=0;v.src=[].concat(cur.src)[0];
-  var tracks=(cur.subs&&cur.subs.length)?cur.subs:[{label:"English (sample)",lang:"en",src:vtt(cur)}];
-  tracks.forEach(function(t,i){var e=document.createElement("track");e.kind="subtitles";e.label=t.label;e.srclang=t.lang;e.src=t.src;if(i===0)e.default=true;v.appendChild(e)});
+  var v=$("#vid"),y=$("#yt"),d=$("#dl");$("#err").hidden=true;v.pause();
+  if(cur.yt){
+    v.style.display="none";v.removeAttribute("src");v.innerHTML="";y.style.display="block";
+    y.src="https://www.youtube.com/embed/"+cur.yt+"?autoplay=1&rel=0&cc_load_policy=1&hl=en";
+    d.href="https://www.youtube.com/watch?v="+cur.yt;d.textContent="Watch on YouTube";d.removeAttribute("download");
+  }else{
+    y.style.display="none";y.src="about:blank";v.style.display="block";v.innerHTML="";
+    cur.i=0;v.src=[].concat(cur.src)[0];
+    var tracks=(cur.subs&&cur.subs.length)?cur.subs:[{label:"English (sample)",lang:"en",src:vtt(cur)}];
+    tracks.forEach(function(t,i){var e=document.createElement("track");e.kind="subtitles";e.label=t.label;e.srclang=t.lang;e.src=t.src;if(i===0)e.default=true;v.appendChild(e)});
+    d.href=[].concat(cur.src)[0];d.textContent="Download";d.setAttribute("download",cur.title+".mp4");
+    v.play().catch(function(){});
+  }
   $("#t").textContent=cur.title;
   $("#m").textContent=cur.year+"  •  "+cur.len+"  •  "+cur.cat;
   $("#d").textContent=cur.desc;
-  $("#dl").href=[].concat(cur.src)[0];$("#dl").setAttribute("download",cur.title+".mp4");
-  upd();$("#dlg").showModal();v.play().catch(function(){});
+  upd();$("#dlg").showModal();
 }
 function upd(){$("#lst").textContent=mine.indexOf(cur.id)>-1?"✓ In My List":"+ Add to My List"}
 function toast(t){var e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(function(){e.remove()},1800)}
@@ -167,7 +179,7 @@ document.addEventListener("click",function(e){
 });
 document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.classList.contains("card"))open(e.target.dataset.id)});
 $("#close").onclick=function(){$("#dlg").close()};
-$("#dlg").addEventListener("close",function(){var v=$("#vid");v.pause();v.removeAttribute("src");v.load()});
+$("#dlg").addEventListener("close",function(){$("#yt").src="about:blank";var v=$("#vid");v.pause();v.removeAttribute("src");v.load()});
 $("#lst").onclick=function(){
   var i=mine.indexOf(cur.id);
   if(i>-1){mine.splice(i,1);toast("Removed from My List")}else{mine.push(cur.id);toast("Added to My List")}
