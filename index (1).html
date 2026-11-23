@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StreamBox – Free Open Movies</title>
+<meta name="color-scheme" content="dark">
+<style>
+:root{color-scheme:dark;--bg:#141414;--panel:#1f1f1f;--text:#f3f3f3;--muted:#a8a8a8;--red:#e50914;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:12px 4%;background:linear-gradient(#000c,#000a)}
+.logo{font-size:1.6rem;font-weight:800;color:var(--red);letter-spacing:.5px}
+nav{display:flex;gap:6px}
+nav button,.btn{font:inherit;cursor:pointer;border:0;border-radius:4px;padding:8px 16px;font-weight:600}
+nav button{background:none;color:var(--muted)}
+nav button.on{color:var(--text);background:#ffffff1f}
+#q{margin-left:auto;background:#000;color:var(--text);border:1px solid #555;border-radius:4px;padding:8px 12px;font:inherit;min-width:180px}
+.hero{min-height:56vh;display:flex;flex-direction:column;justify-content:flex-end;padding:8% 4% 40px;background:linear-gradient(90deg,#141414 15%,#14141400 80%),linear-gradient(#14141400 60%,#141414),var(--hg,#3a1c71)}
+.hero h1{font-size:clamp(2rem,6vw,4rem);margin:0 0 8px;max-width:14ch;line-height:1.05}
+.hero p{max-width:52ch;color:#ddd;margin:0 0 18px}
+.row-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn.play{background:#fff;color:#000}.btn.alt{background:#6d6d6eb3;color:#fff}.btn.red{background:var(--red);color:#fff}
+.btn:hover{opacity:.85}
+main{padding:0 4% 60px}
+h2{font-size:1.2rem;margin:28px 0 10px}
+.row{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+.card{flex:0 0 auto;width:200px;aspect-ratio:2/3;border-radius:6px;position:relative;cursor:pointer;scroll-snap-align:start;display:flex;align-items:flex-end;padding:12px;overflow:hidden;border:2px solid transparent;transition:transform .15s}
+.card:hover,.card:focus-visible{transform:scale(1.05);border-color:#fff;outline:0}
+.card b{font-size:1.05rem;line-height:1.15;text-shadow:0 2px 6px #000}
+.card small{position:absolute;top:8px;left:8px;background:#000a;padding:1px 7px;border-radius:3px;font-size:.7rem}
+.empty{color:var(--muted);padding:30px 0}
+dialog{width:min(960px,96vw);border:0;border-radius:8px;background:var(--panel);color:var(--text);padding:0;max-height:94vh;overflow:auto}
+dialog::backdrop{background:#000c}
+video{width:100%;display:block;background:#000;max-height:62vh}
+.info{padding:16px 20px 22px}
+.info h3{margin:0 0 4px;font-size:1.5rem}
+.meta{color:var(--muted);font-size:.9rem;margin-bottom:10px}
+.x{position:absolute;right:10px;top:10px;z-index:2;background:#000a;color:#fff;border-radius:50%;width:36px;height:36px;padding:0}
+.note{color:var(--muted);font-size:.8rem;margin-top:12px}
+footer{padding:20px 4%;color:var(--muted);font-size:.8rem;border-top:1px solid #333}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#fff;color:#000;padding:8px 16px;border-radius:4px;font-weight:600;z-index:20}
+@keyframes drift{from{transform:translate(-4%,-3%) scale(1)}to{transform:translate(5%,4%) scale(1.15)}}
+@keyframes up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(34px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{text-shadow:0 0 0 #e5091400}50%{text-shadow:0 0 18px #e50914aa}}
+@keyframes pop{from{opacity:0;transform:scale(.92) translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #ffffff88}100%{box-shadow:0 0 0 16px #ffffff00}}
+@keyframes toast{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes sweep{from{transform:translateX(-120%) skewX(-20deg)}to{transform:translateX(220%) skewX(-20deg)}}
+.logo{animation:glow 3s ease-in-out infinite}
+.hero{position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:-20%;z-index:0;background:radial-gradient(circle at 72% 28%,#e5091466,transparent 40%),radial-gradient(circle at 28% 72%,#4f46e566,transparent 45%);animation:drift 12s ease-in-out infinite alternate}
+.hero>*{position:relative;z-index:1}
+.hero h1{animation:up .8s .1s cubic-bezier(.2,.8,.2,1) backwards}
+.hero p{animation:up .8s .3s cubic-bezier(.2,.8,.2,1) backwards}
+.hero .row-btns{animation:up .8s .5s cubic-bezier(.2,.8,.2,1) backwards}
+.btn.play{animation:pulse 2s 1.4s infinite}
+.btn{transition:transform .15s,opacity .15s}
+.btn:active{transform:scale(.94)}
+h2{animation:fade .6s backwards}
+.card{animation:rise .6s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*70ms);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+.card:hover,.card:focus-visible{transform:scale(1.08) translateY(-6px);box-shadow:0 14px 30px #000c;z-index:2}
+.card::after{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,#ffffff40,transparent);transform:translateX(-120%) skewX(-20deg);pointer-events:none}
+.card:hover::after{animation:sweep .8s ease}
+dialog[open]{animation:pop .35s cubic-bezier(.2,.8,.2,1)}
+dialog[open]::backdrop{animation:fade .35s}
+.toast{animation:toast .3s ease}
+.x{transition:transform .25s}.x:hover{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (max-width:600px){.card{width:130px}#q{min-width:0;flex:1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">STREAMBOX</div>
+  <nav>
+    <button data-v="home" class="on">Home</button>
+    <button data-v="list">My List</button>
+  </nav>
+  <input id="q" type="search" placeholder="Search titles" aria-label="Search titles">
+</header>
+
+<section class="hero" id="hero"></section>
+<main id="main"></main>
+<footer>StreamBox shows only free, legally shareable films: official Blender open movies, played through the YouTube player (use the gear icon for HD quality and the CC button for subtitles). Add your own titles in the <code>MOVIES</code> list in this file.</footer>
+
+<dialog id="dlg">
+  <button class="btn x" id="close" aria-label="Close">✕</button>
+  <video id="vid" controls playsinline preload="metadata"></video>
+  <iframe id="yt" title="Movie player" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture; fullscreen" style="display:none;width:100%;aspect-ratio:16/9;border:0;background:#000"></iframe>
+  <div id="err" hidden style="padding:10px 20px;color:#ff8a8a;background:#2a1212"></div>
+  <div class="info">
+    <h3 id="t"></h3>
+    <div class="meta" id="m"></div>
+    <p id="d"></p>
+    <div class="row-btns">
+      <button class="btn alt" id="lst"></button>
+      <a class="btn red" id="dl" target="_blank" rel="noopener" style="text-decoration:none">Download</a>
+    </div>
+    <div class="note">Use the CC button for subtitles and the gear icon for HD quality. If a video says unavailable, press Watch on YouTube.</div>
+  </div>
+</dialog>
+
+<script>
+var B="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/";
+/* Add your own movies here. Optional: subs:[{label:"Urdu",lang:"ur",src:"urdu.vtt"}] */
+var MOVIES=[
+ {id:1,title:"Big Buck Bunny",cat:"Animation",year:2008,len:"10 min",hue:120,yt:"aqz-KE-bpKQ",desc:"A giant rabbit takes gentle revenge on three bullying rodents. Blender Foundation open movie (CC BY 3.0)."},
+ {id:2,title:"Sintel",cat:"Animation",year:2010,len:"15 min",hue:10,yt:"eRsGyueVLvQ",desc:"A young woman searches for the baby dragon she once befriended. Blender Foundation open movie (CC BY 3.0)."},
+ {id:3,title:"Elephants Dream",cat:"Animation",year:2006,len:"11 min",hue:260,yt:"TLkA0RELQ1g",desc:"Two strange characters explore a surreal mechanical world. The first Blender open movie (CC BY 2.5)."},
+ {id:4,title:"Tears of Steel",cat:"Sci-Fi",year:2012,len:"12 min",hue:200,yt:"R6MlUcmOul8",desc:"Warriors and scientists try to save the world from destructive robots. Blender Foundation (CC BY 3.0)."},
+ {id:5,title:"Cosmos Laundromat",cat:"Sci-Fi",year:2015,len:"12 min",hue:290,yt:"Y-rmzh0PI3c",desc:"A lonely sheep on an island is offered a very strange new life. Blender Foundation (CC BY 4.0)."},
+ {id:6,title:"Spring",cat:"Animation",year:2019,len:"8 min",hue:95,yt:"WhWc3b3KhnY",desc:"A shepherd girl and her dog face ancient spirits in a timeless cycle. Blender Studio (CC BY 4.0)."},
+ {id:7,title:"Agent 327: Operation Barbershop",cat:"Short Comedy",year:2017,len:"4 min",hue:35,yt:"mN0zPOpADL4",desc:"A secret agent investigates a suspicious barbershop. Blender Studio (CC BY 4.0)."},
+ {id:8,title:"Caminandes: Llama Drama",cat:"Short Comedy",year:2013,len:"2 min",hue:50,yt:"SkVqJ1SGeL0",desc:"A llama named Koro tries to cross a fence to reach some tasty berries. Blender Studio (CC BY 3.0)."}
+];
+/* To add your own video file instead of YouTube, use src:"my-video.mp4" (put the file in the same repo folder). */
+var $=function(s){return document.querySelector(s)};
+var view="home",term="",cur=null,mine=[];
+try{mine=JSON.parse(localStorage.getItem("sb_list")||"[]")}catch(e){mine=[]}
+function save(){try{localStorage.setItem("sb_list",JSON.stringify(mine))}catch(e){}}
+function bg(m){return "linear-gradient(160deg,hsl("+m.hue+" 70% 38%),hsl("+(m.hue+50)+" 60% 14%))"}
+function thumb(m){return m.yt?"linear-gradient(transparent 40%,#000d),url('https://i.ytimg.com/vi/"+m.yt+"/hqdefault.jpg') center/cover no-repeat,":""}
+function card(m,i){return '<div class="card" tabindex="0" role="button" data-id="'+m.id+'" style="--i:'+i+';background:'+thumb(m)+bg(m)+'"><small>'+m.year+'</small><b>'+m.title+'</b></div>'}
+function row(name,list){return list.length?'<h2>'+name+'</h2><div class="row">'+list.map(card).join("")+'</div>':""}
+function render(){
+  var f=MOVIES.filter(function(m){return m.title.toLowerCase().indexOf(term)>-1});
+  var h="";
+  if(view==="list"){
+    var l=f.filter(function(m){return mine.indexOf(m.id)>-1});
+    h=l.length?row("My List",l):'<p class="empty">Your list is empty. Open a title and press “Add to My List”.</p>';
+  }else if(term){
+    h=f.length?row("Results",f):'<p class="empty">No titles match “'+term.replace(/[<>&"]/g,"")+'”. Try a different word.</p>';
+  }else{
+    var cats=[];MOVIES.forEach(function(m){if(cats.indexOf(m.cat)<0)cats.push(m.cat)});
+    var l2=MOVIES.filter(function(m){return mine.indexOf(m.id)>-1});
+    h=row("My List",l2)+cats.map(function(c){return row(c,MOVIES.filter(function(m){return m.cat===c}))}).join("");
+  }
+  $("#main").innerHTML=h;
+  $("#hero").style.display=(view==="home"&&!term)?"flex":"none";
+}
+function hero(){
+  var m=MOVIES[0];
+  $("#hero").style.setProperty("--hg",(m.yt?"url(https://i.ytimg.com/vi/"+m.yt+"/maxresdefault.jpg) center/cover no-repeat,":"")+"hsl("+m.hue+" 60% 22%)");
+  $("#hero").innerHTML='<h1>'+m.title+'</h1><p>'+m.desc+'</p><div class="row-btns"><button class="btn play" data-id="'+m.id+'">▶ Play</button><button class="btn alt" data-id="'+m.id+'">More info</button></div>';
+}
+function vtt(m){
+  var s="WEBVTT\n\n00:00:01.000 --> 00:00:05.000\n"+m.title+"\n\n00:00:06.000 --> 00:00:12.000\nSample subtitle. Add your own .vtt files for real captions.\n";
+  return URL.createObjectURL(new Blob([s],{type:"text/vtt"}));
+}
+function open(id){
+  cur=MOVIES.filter(function(m){return m.id===+id})[0];if(!cur)return;
+  var v=$("#vid"),y=$("#yt"),d=$("#dl");$("#err").hidden=true;v.pause();
+  if(cur.yt){
+    v.style.display="none";v.removeAttribute("src");v.innerHTML="";y.style.display="block";
+    y.src="https://www.youtube.com/embed/"+cur.yt+"?autoplay=1&rel=0&cc_load_policy=1&hl=en";
+    d.href="https://www.youtube.com/watch?v="+cur.yt;d.textContent="Watch on YouTube";d.removeAttribute("download");
+  }else{
+    y.style.display="none";y.src="about:blank";v.style.display="block";v.innerHTML="";
+    cur.i=0;v.src=[].concat(cur.src)[0];
+    var tracks=(cur.subs&&cur.subs.length)?cur.subs:[{label:"English (sample)",lang:"en",src:vtt(cur)}];
+    tracks.forEach(function(t,i){var e=document.createElement("track");e.kind="subtitles";e.label=t.label;e.srclang=t.lang;e.src=t.src;if(i===0)e.default=true;v.appendChild(e)});
+    d.href=[].concat(cur.src)[0];d.textContent="Download";d.setAttribute("download",cur.title+".mp4");
+    v.play().catch(function(){});
+  }
+  $("#t").textContent=cur.title;
+  $("#m").textContent=cur.year+"  •  "+cur.len+"  •  "+cur.cat;
+  $("#d").textContent=cur.desc;
+  upd();$("#dlg").showModal();
+}
+function upd(){$("#lst").textContent=mine.indexOf(cur.id)>-1?"✓ In My List":"+ Add to My List"}
+function toast(t){var e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(function(){e.remove()},1800)}
+document.addEventListener("click",function(e){
+  var c=e.target.closest("[data-id]");if(c){open(c.dataset.id);return}
+  var n=e.target.closest("nav button");if(n){view=n.dataset.v;document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b===n)});render()}
+});
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.classList.contains("card"))open(e.target.dataset.id)});
+$("#close").onclick=function(){$("#dlg").close()};
+$("#dlg").addEventListener("close",function(){$("#yt").src="about:blank";var v=$("#vid");v.pause();v.removeAttribute("src");v.load()});
+$("#lst").onclick=function(){
+  var i=mine.indexOf(cur.id);
+  if(i>-1){mine.splice(i,1);toast("Removed from My List")}else{mine.push(cur.id);toast("Added to My List")}
+  save();upd();render();
+};
+$("#q").addEventListener("input",function(e){term=e.target.value.trim().toLowerCase();render()});
+$("#vid").addEventListener("error",function(){var e=$("#err");if(!cur||!$("#vid").getAttribute("src"))return;var S=[].concat(cur.src);if(cur.i+1<S.length){cur.i++;$("#vid").src=S[cur.i];$("#vid").play().catch(function(){});return}e.hidden=false;e.textContent="This video could not load (the video link may be blocked or removed). Try Download, or replace the link in the MOVIES list."});
+hero();render();
+</script>
+</body>
+</html>
