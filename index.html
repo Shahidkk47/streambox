@@ -90,6 +90,7 @@ dialog[open]::backdrop{animation:fade .35s}
 <dialog id="dlg">
   <button class="btn x" id="close" aria-label="Close">✕</button>
   <video id="vid" controls playsinline preload="metadata"></video>
+  <div id="err" hidden style="padding:10px 20px;color:#ff8a8a;background:#2a1212"></div>
   <div class="info">
     <h3 id="t"></h3>
     <div class="meta" id="m"></div>
@@ -106,10 +107,10 @@ dialog[open]::backdrop{animation:fade .35s}
 var B="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/";
 /* Add your own movies here. Optional: subs:[{label:"Urdu",lang:"ur",src:"urdu.vtt"}] */
 var MOVIES=[
- {id:1,title:"Big Buck Bunny",cat:"Animation",year:2008,len:"10 min",hue:120,src:B+"BigBuckBunny.mp4",desc:"A giant rabbit takes gentle revenge on three bullying rodents. Blender Foundation open movie (CC BY 3.0)."},
+ {id:1,title:"Big Buck Bunny",cat:"Animation",year:2008,len:"10 min",hue:120,src:["https://download.blender.org/demo/movies/BBB/bbb_sunflower_1080p_30fps_normal.mp4","https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4",B+"BigBuckBunny.mp4"],desc:"A giant rabbit takes gentle revenge on three bullying rodents. Blender Foundation open movie (CC BY 3.0)."},
  {id:2,title:"Sintel",cat:"Animation",year:2010,len:"15 min",hue:10,src:B+"Sintel.mp4",desc:"A young woman searches for the baby dragon she once befriended. Blender Foundation open movie (CC BY 3.0)."},
  {id:3,title:"Elephants Dream",cat:"Animation",year:2006,len:"11 min",hue:260,src:B+"ElephantsDream.mp4",desc:"Two strange characters explore a surreal mechanical world. The first Blender open movie (CC BY 2.5)."},
- {id:4,title:"Tears of Steel",cat:"Sci-Fi",year:2012,len:"12 min",hue:200,src:B+"TearsOfSteel.mp4",desc:"Warriors and scientists try to save the world from destructive robots. Blender Foundation (CC BY 3.0)."},
+ {id:4,title:"Tears of Steel",cat:"Sci-Fi",year:2012,len:"12 min",hue:200,src:["https://download.blender.org/demo/movies/ToS/tears_of_steel_720p.mov",B+"TearsOfSteel.mp4"],desc:"Warriors and scientists try to save the world from destructive robots. Blender Foundation (CC BY 3.0)."},
  {id:5,title:"For Bigger Blazes",cat:"Short Clips",year:2013,len:"15 sec",hue:30,src:B+"ForBiggerBlazes.mp4",desc:"A short sample clip, handy for testing playback speed and quality."},
  {id:6,title:"For Bigger Escape",cat:"Short Clips",year:2013,len:"15 sec",hue:340,src:B+"ForBiggerEscapes.mp4",desc:"A short sample clip for testing playback."},
  {id:7,title:"For Bigger Fun",cat:"Short Clips",year:2013,len:"1 min",hue:170,src:B+"ForBiggerFun.mp4",desc:"A short sample clip for testing playback."},
@@ -149,13 +150,13 @@ function vtt(m){
 }
 function open(id){
   cur=MOVIES.filter(function(m){return m.id===+id})[0];if(!cur)return;
-  var v=$("#vid");v.innerHTML="";v.src=cur.src;
+  var v=$("#vid");$("#err").hidden=true;v.innerHTML="";cur.i=0;v.src=[].concat(cur.src)[0];
   var tracks=(cur.subs&&cur.subs.length)?cur.subs:[{label:"English (sample)",lang:"en",src:vtt(cur)}];
   tracks.forEach(function(t,i){var e=document.createElement("track");e.kind="subtitles";e.label=t.label;e.srclang=t.lang;e.src=t.src;if(i===0)e.default=true;v.appendChild(e)});
   $("#t").textContent=cur.title;
   $("#m").textContent=cur.year+"  •  "+cur.len+"  •  "+cur.cat;
   $("#d").textContent=cur.desc;
-  $("#dl").href=cur.src;$("#dl").setAttribute("download",cur.title+".mp4");
+  $("#dl").href=[].concat(cur.src)[0];$("#dl").setAttribute("download",cur.title+".mp4");
   upd();$("#dlg").showModal();v.play().catch(function(){});
 }
 function upd(){$("#lst").textContent=mine.indexOf(cur.id)>-1?"✓ In My List":"+ Add to My List"}
@@ -173,6 +174,7 @@ $("#lst").onclick=function(){
   save();upd();render();
 };
 $("#q").addEventListener("input",function(e){term=e.target.value.trim().toLowerCase();render()});
+$("#vid").addEventListener("error",function(){var e=$("#err");if(!cur||!$("#vid").getAttribute("src"))return;var S=[].concat(cur.src);if(cur.i+1<S.length){cur.i++;$("#vid").src=S[cur.i];$("#vid").play().catch(function(){});return}e.hidden=false;e.textContent="This video could not load (the video link may be blocked or removed). Try Download, or replace the link in the MOVIES list."});
 hero();render();
 </script>
 </body>
